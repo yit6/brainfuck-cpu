@@ -1,0 +1,33 @@
+\documentclass[12pt]{article}
+
+\usepackage{float}
+
+\title{Brainfuck ISA}
+\author{Wyatt Mortimer}
+
+\begin{document}
+
+Each instruction is 16 bits.
+The high 8 bits are the opcode, and the low 8 are the immediate.
+The immediate is ignored for all instructions except load immediate.
+Each instruction, except No-Op and load immediate, correspond to a brainfuck command.
+
+\begin{table}[H]
+	\centering
+	\caption{Instruction structure}
+	\begin{tabular}{|cccccccc|c||c|c|} \hline
+		\multicolumn{8}{|c|}{15..8} & {7..0} & Symbol & Description \\ \hline
+		0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & - &             & No Op             \\ \hline
+		1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & - & \texttt{>}  & Inc data pointer  \\ \hline
+		0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & - & \texttt{<}  & Dec data pointer  \\ \hline
+		0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & - & \texttt{+}  & Inc current mem   \\ \hline
+		0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & - & \texttt{-}  & Dec current mem   \\ \hline
+		0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & - & \texttt{.}  & Print current mem \\ \hline
+		0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & - & \texttt{,}  & Input current mem \\ \hline
+		0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & - & \texttt{[}  & jump to matching ] if zero mem \\ \hline
+		0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & - & \texttt{]}  & jump to matching [ if nonzero mem \\ \hline
+		1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & \texttt{Imm8} & & load immediate to current mem \\ \hline
+	\end{tabular}
+\end{table}
+
+\end{document}
