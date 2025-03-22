@@ -50,6 +50,7 @@ architecture buh of execute is
 
 	component control is port (
 		ins : in std_logic_vector(15 downto 0);
+		enable : in std_logic;
 		inc_dec_src : out std_logic;
 		data_src    : out std_logic_vector(1 downto 0);
 		write_mem   : out std_logic;
@@ -87,6 +88,7 @@ begin
 
 	ex_control : control port map (
 		ins => ins,
+		enable => enable,
 		inc_dec_src => inc_dec_src,
 		data_src => data_src,
 		write_mem => write_mem,

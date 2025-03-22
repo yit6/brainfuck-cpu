@@ -108,7 +108,7 @@ begin
 	);
 
 	process(clk) is begin
-		if clk'event and clk='0' then
+		if clk'event and clk='1' then
 			if ex_en='1' then
 				if ins(15 downto 8)="00000010" and (or char_out)='0' then
 					scan_for_close <= '1';
@@ -131,7 +131,7 @@ begin
 						addr <= prev_addr;
 					end if;
 				elsif ins(15 downto 8)="00000001" then
-					bracket_count <= dec_bracket_count;
+					bracket_count <= inc_bracket_count;
 					addr <= prev_addr;
 				else
 					addr <= prev_addr;

@@ -5,6 +5,7 @@ use ieee.std_logic_1164.all;
 entity control is port
 	(
 		ins : in std_logic_vector(15 downto 0);
+		enable : in std_logic;
 		inc_dec_src : out std_logic;
 		data_src    : out std_logic_vector(1 downto 0);
 		write_mem   : out std_logic;
@@ -25,10 +26,10 @@ begin
 	data_src <= (ins(14) or ins(12)) & (ins(15) or ins(13));
 
 	-- write memory for + - ,
-	write_mem <= ins(13) or ins(12) or ins(10);
+	write_mem <= enable and (ins(13) or ins(12) or ins(10));
 
 	-- change address for > and <, but not load immediate
-	write_addr <= (ins(15) or ins(14)) and not load_imm;
+	write_addr <= enable and (ins(15) or ins(14)) and not load_imm;
 
 	out_en <= ins(11) and not load_imm;
 end architecture buh;

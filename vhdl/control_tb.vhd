@@ -8,6 +8,7 @@ end entity control_tb;
 architecture guh of control_tb is
 	component control is port (
 		ins : in std_logic_vector(15 downto 0);
+		enable : in std_logic;
 		inc_dec_src : out std_logic;
 		data_src    : out std_logic_vector(1 downto 0);
 		write_mem   : out std_logic;
@@ -16,6 +17,7 @@ architecture guh of control_tb is
 	end component control;
 
 	signal ins         : std_logic_vector(15 downto 0);
+	signal enable      : std_logic := '1';
 	signal inc_dec_src : std_logic;
 	signal data_src    : std_logic_vector(1 downto 0);
 	signal write_mem   : std_logic;
@@ -25,6 +27,7 @@ begin
 
 	con : control port map (
 		ins => ins,
+		enable => enable,
 		inc_dec_src => inc_dec_src,
 		data_src => data_src,
 		write_mem => write_mem,
