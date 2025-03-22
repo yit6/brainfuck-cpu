@@ -15,16 +15,10 @@ architecture buh of program is
 	type prog_array is array(0 to (2**PROG_W)-1) of std_logic_vector(15 downto 0);
 	
 	signal prog : prog_array := (
-		"11111111"&x"3c",
-		"00100000"&x"00",
-		"10000000"&x"00",
-		"00100000"&x"00",
-		"10000000"&x"00",
-		"00100000"&x"00",
-		"00010000"&x"00",
-		"01000000"&x"00",
-		"00010000"&x"00",
-		"01000000"&x"00",
+		"11111111"&x"3c", -- load 0x3c
+		"00000010"&x"00", -- bf: [
+		"00010000"&x"00", -- bf: -
+		"00000001"&x"00", -- bf: ]
 		others => (others =>'0')
 	);
 begin

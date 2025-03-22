@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity cpu is
-	generic (PROG_W : integer := 16);
+	generic (PROG_W : integer := 16; BRACKET_DEPTH : integer := 8);
 	port (
 		clk      :  in std_logic;
 		char_in  :  in std_logic_vector(7 downto 0);
@@ -59,7 +59,13 @@ architecture buh of cpu is
 	signal next_addr : std_logic_vector(PROG_W-1 downto 0);
 	signal prev_addr : std_logic_vector(PROG_W-1 downto 0);
 
-	signal ex_en : std_logic;
+	signal ex_en : std_logic := '1';
+	signal scan_for_open : std_logic := '0';
+	signal scan_for_close : std_logic := '0';
+
+	signal bracket_count : std_logic_vector(BRACKET_DEPTH-1 downto 0) := (others => '0');
+	signal inc_bracket_count : std_logic_vector(BRACKET_DEPTH-1 downto 0);
+	signal dec_bracket_count : std_logic_vector(BRACKET_DEPTH-1 downto 0);
 begin
 	prog : program
 	generic map (PROG_W => PROG_W)
@@ -89,9 +95,65 @@ begin
 		y => prev_addr
 	);
 
+	bracket_inc : inc generic map (N => BRACKET_DEPTH)
+	port map (
+		a => bracket_count,
+		y => inc_bracket_count
+	);
+
+	bracket_dec : dec generic map (N => BRACKET_DEPTH)
+	port map (
+		a => bracket_count,
+		y => dec_bracket_count
+	);
+
 	process(clk) is begin
 		if clk'event and clk='0' then
-			addr <= next_addr;
+			if ex_en='1' then
+				if ins(15 downto 8)="00000010" and (or char_out)='0' then
+					scan_for_close <= '1';
+					addr <= next_addr;
+					ex_en <= '0';
+				elsif ins(15 downto 8)="00000001" and (or char_out)='1' then
+					scan_for_open <= '1';
+					addr <= prev_addr;
+					ex_en <= '0';
+				else
+					addr <= next_addr;
+				end if;
+			elsif scan_for_open='1' then
+				if ins(15 downto 8)="00000010" then
+					if (or bracket_count)='0' then
+						scan_for_open <= '0';
+						ex_en <= '1';
+					else 
+						bracket_count <= dec_bracket_count;
+						addr <= prev_addr;
+					end if;
+				elsif ins(15 downto 8)="00000001" then
+					bracket_count <= dec_bracket_count;
+					addr <= prev_addr;
+				else
+					addr <= prev_addr;
+				end if;
+
+			elsif scan_for_close='1' then
+				if ins(15 downto 8)="00000001" then
+					if (or bracket_count)='0' then
+						scan_for_close <= '0';
+						ex_en <= '1';
+					else 
+						bracket_count <= dec_bracket_count;
+						addr <= next_addr;
+					end if;
+				elsif ins(15 downto 8)="00000010" then
+					bracket_count <= inc_bracket_count;
+					addr <= next_addr;
+				else
+					addr <= next_addr;
+				end if;
+
+			end if;
 		end if;
 	end process;
 end architecture buh;
