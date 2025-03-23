@@ -139,8 +139,18 @@ begin
 		y => dec_bracket_count
 	);
 
-	process(clk) is begin
+	process(clk) is 
+		variable match : std_logic;
+	begin
 		if clk'event and clk='1' then
+			if mode="01" and ins(15 downto 8)="00000010" and (or bracket_count)='0' then
+				match := '1';
+			elsif mode="10" and ins(15 downto 8)="00000001" and (or bracket_count)='0' then
+				match := '1';
+			else
+				match := '0';
+			end if;
+
 			if mode="11" then
 				if ins(15 downto 8)="00000010" and (or char_out)='0' then
 					mode <= "10";
@@ -151,36 +161,25 @@ begin
 				else
 					addr <= next_addr;
 				end if;
-			elsif mode="01" then
-				if ins(15 downto 8)="00000010" then
-					if (or bracket_count)='0' then
-						mode <= "11";
-					else 
-						bracket_count <= dec_bracket_count;
-						addr <= prev_addr;
-					end if;
-				elsif ins(15 downto 8)="00000001" then
-					bracket_count <= inc_bracket_count;
-					addr <= prev_addr;
-				else
-					addr <= prev_addr;
-				end if;
-
-			elsif mode="10" then
-				if ins(15 downto 8)="00000001" then
-					if (or bracket_count)='0' then
-						mode <= "11";
-					else 
-						bracket_count <= dec_bracket_count;
-						addr <= next_addr;
-					end if;
-				elsif ins(15 downto 8)="00000010" then
-					bracket_count <= inc_bracket_count;
+			elsif match='1' then
+				bracket_count <= (others => '0');
+				mode <= "11";
+			else
+				if mode="10" then
 					addr <= next_addr;
-				else
-					addr <= next_addr;
+					if ins(15 downto 8)="00000010" then
+						bracket_count <= inc_bracket_count;
+					elsif ins(15 downto 8)="00000001" then
+						bracket_count <= dec_bracket_count;
+					end if;
+				elsif mode="01" then
+					addr <= prev_addr;
+					if ins(15 downto 8)="00000001" then
+						bracket_count <= inc_bracket_count;
+					elsif ins(15 downto 8)="00000010" then
+						bracket_count <= dec_bracket_count;
+					end if;
 				end if;
-
 			end if;
 		end if;
 	end process;
