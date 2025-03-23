@@ -28,14 +28,28 @@ architecture buh of cpu is
 			ADDR_W : integer := 16
 		);
 		port (
-			clk      :  in std_logic;
-			ins      :  in std_logic_vector(15 downto 0);
-			char_in  :  in std_logic_vector( 7 downto 0);
-			enable   :  in std_logic;
-			char_out : out std_logic_vector(7 downto 0);
-			out_en   : out std_logic
+			clk         :  in std_logic;
+			ins         :  in std_logic_vector(15 downto 0);
+			char_in     :  in std_logic_vector( 7 downto 0);
+			inc_dec_src :  in std_logic;
+			data_src    :  in std_logic_vector(1 downto 0);
+			write_mem   :  in std_logic;
+			write_addr  :  in std_logic;
+			char_out : out std_logic_vector(7 downto 0)
 		);
 	end component execute;
+
+	component control is port
+		(
+			ins : in std_logic_vector(15 downto 0);
+			mode : in std_logic_vector(1 downto 0);
+			inc_dec_src : out std_logic;
+			data_src    : out std_logic_vector(1 downto 0);
+			write_mem   : out std_logic;
+			write_addr  : out std_logic;
+			out_en      : out std_logic
+		);
+	end component control;
 
 	component inc is
 		generic (N : integer);
@@ -59,13 +73,19 @@ architecture buh of cpu is
 	signal next_addr : std_logic_vector(PROG_W-1 downto 0);
 	signal prev_addr : std_logic_vector(PROG_W-1 downto 0);
 
-	signal ex_en : std_logic := '1';
-	signal scan_for_open : std_logic := '0';
-	signal scan_for_close : std_logic := '0';
+	-- 11: normal
+	-- 10: scan for close
+	-- 01: scan for open
+	signal mode : std_logic_vector(1 downto 0) := "11";
 
 	signal bracket_count : std_logic_vector(BRACKET_DEPTH-1 downto 0) := (others => '0');
 	signal inc_bracket_count : std_logic_vector(BRACKET_DEPTH-1 downto 0);
 	signal dec_bracket_count : std_logic_vector(BRACKET_DEPTH-1 downto 0);
+
+	signal inc_dec_src : std_logic;
+	signal data_src    : std_logic_vector(1 downto 0);
+	signal write_mem   : std_logic;
+	signal write_addr  : std_logic;
 begin
 	prog : program
 	generic map (PROG_W => PROG_W)
@@ -74,13 +94,25 @@ begin
 		ins => ins
 	);
 
+	con : control port map (
+		ins => ins,
+		mode => mode,
+		inc_dec_src => inc_dec_src,
+		data_src    => data_src,
+		write_mem   => write_mem,
+		write_addr  => write_addr,
+		out_en      => out_en
+	);
+
 	ex : execute port map (
 		clk => clk,
 		ins => ins,
 		char_in => char_in,
-		enable => ex_en,
-		char_out => char_out,
-		out_en => out_en
+		inc_dec_src => inc_dec_src,
+		data_src    => data_src,
+		write_mem   => write_mem,
+		write_addr  => write_addr,
+		char_out => char_out
 	);
 
 	addr_inc : inc generic map (N => PROG_W)
@@ -109,23 +141,20 @@ begin
 
 	process(clk) is begin
 		if clk'event and clk='1' then
-			if ex_en='1' then
+			if mode="11" then
 				if ins(15 downto 8)="00000010" and (or char_out)='0' then
-					scan_for_close <= '1';
+					mode <= "10";
 					addr <= next_addr;
-					ex_en <= '0';
 				elsif ins(15 downto 8)="00000001" and (or char_out)='1' then
-					scan_for_open <= '1';
+					mode <= "01";
 					addr <= prev_addr;
-					ex_en <= '0';
 				else
 					addr <= next_addr;
 				end if;
-			elsif scan_for_open='1' then
+			elsif mode="01" then
 				if ins(15 downto 8)="00000010" then
 					if (or bracket_count)='0' then
-						scan_for_open <= '0';
-						ex_en <= '1';
+						mode <= "11";
 					else 
 						bracket_count <= dec_bracket_count;
 						addr <= prev_addr;
@@ -137,11 +166,10 @@ begin
 					addr <= prev_addr;
 				end if;
 
-			elsif scan_for_close='1' then
+			elsif mode="10" then
 				if ins(15 downto 8)="00000001" then
 					if (or bracket_count)='0' then
-						scan_for_close <= '0';
-						ex_en <= '1';
+						mode <= "11";
 					else 
 						bracket_count <= dec_bracket_count;
 						addr <= next_addr;
