@@ -51,7 +51,7 @@ begin
 	-- change address for > and <, but not load immediate
 	write_addr <= normal_mode and (ins(15) or ins(14)) and not load_imm;
 
-	out_en <= ins(11) and not load_imm;
+	out_en <= ins(11) and not load_imm and normal_mode;
 
 	scan_open  <= '1' when mode="01" else '0';
 	scan_close <= '1' when mode="10" else '0';
