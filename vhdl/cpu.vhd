@@ -163,6 +163,7 @@ begin
 				end if;
 			elsif match='1' then
 				bracket_count <= (others => '0');
+				addr <= next_addr;
 				mode <= "11";
 			else
 				if mode="10" then
