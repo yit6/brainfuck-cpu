@@ -19,7 +19,7 @@ end entity mem;
 
 architecture buh of mem is
 	type mem_array is array((2**ADDR_W)-1 downto 0) of std_logic_vector(BIT_W-1 downto 0);
-	signal memory : mem_array := (others => (others => '0'));
+	signal memory : mem_array := (others => (others => 'U'));
 begin
 	data_out <= memory(to_integer(unsigned(addr)));
 
