@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity cpu is
-	generic (PROG_W : integer := 16; BRACKET_DEPTH : integer := 8);
+	generic (PROG_W : integer := 8; BRACKET_DEPTH : integer := 8);
 	port (
 		clk      :  in std_logic;
 		char_in  :  in std_logic_vector(7 downto 0);
@@ -25,7 +25,7 @@ architecture buh of cpu is
 	component execute is
 		generic (
 			BIT_W : integer := 8;
-			ADDR_W : integer := 16
+			ADDR_W : integer := 5
 		);
 		port (
 			clk         :  in std_logic;

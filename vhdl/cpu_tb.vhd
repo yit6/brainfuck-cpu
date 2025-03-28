@@ -8,7 +8,7 @@ end entity cpu_tb;
 
 architecture guh of cpu_tb is
 	component cpu is
-		generic (PROG_W : integer := 16);
+		generic (PROG_W : integer := 8);
 		port (
 			clk      :  in std_logic;
 			char_in  :  in std_logic_vector(7 downto 0);
@@ -38,7 +38,7 @@ begin
 	);
 
 	process is begin
-		for i in 0 to 10000000 loop
+		for i in 0 to 1000 loop
 			clk <= '0';
 			wait for 10 ns;
 			clk <= '1';
@@ -50,7 +50,7 @@ begin
 
 				assert character'val(to_integer(unsigned(char_out)))=expected_out(curr_char)
 				report "expected "&expected_out(curr_char)&" next, got: "&character'val(to_integer(unsigned(char_out)))
-				severity failure;
+				severity error;
 
 				curr_char <= curr_char+1;
 

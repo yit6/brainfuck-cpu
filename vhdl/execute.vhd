@@ -56,18 +56,18 @@ architecture buh of execute is
  
 	signal write_back  : std_logic_vector(BIT_W-1 downto 0);
 
-	signal inc_dec_in  : std_logic_vector(ADDR_W-1 downto 0);
-	signal inc_out     : std_logic_vector(ADDR_W-1 downto 0);
-	signal dec_out     : std_logic_vector(ADDR_W-1 downto 0);
+	signal inc_dec_in  : std_logic_vector(maximum(ADDR_W,BIT_W)-1 downto 0);
+	signal inc_out     : std_logic_vector(maximum(ADDR_W,BIT_W)-1 downto 0);
+	signal dec_out     : std_logic_vector(maximum(ADDR_W,BIT_W)-1 downto 0);
 
-	signal result      : std_logic_vector(ADDR_W-1 downto 0);
+	signal result      : std_logic_vector(maximum(ADDR_W,BIT_W)-1 downto 0);
 begin
 
 	char_out <= write_back;
 
 	with inc_dec_src select inc_dec_in <=
-		address when '0',
-		(ADDR_W-1 downto BIT_W=>'0')&write_back when others;
+		(maximum(ADDR_W,BIT_W)-1 downto ADDR_W=>'0')&address when '0',
+		(maximum(ADDR_W,BIT_W)-1 downto  BIT_W=>'0')&write_back when others;
 	
 	with data_src select result <=
 		(ADDR_W-1 downto BIT_W=>'0')&char_in when "00",
@@ -75,13 +75,13 @@ begin
 		dec_out when "10",
 		(ADDR_W-1 downto BIT_W=>'0')&ins(7 downto 0) when others;
 
-	incrementor : inc generic map (N => ADDR_W)
+	incrementor : inc generic map (N => maximum(ADDR_W,BIT_W))
 	port map (
 		a => inc_dec_in,
 		y => inc_out
 	);
 
-	decrementor : dec generic map (N => ADDR_W)
+	decrementor : dec generic map (N => maximum(ADDR_W,BIT_W))
 	port map (
 		a => inc_dec_in,
 		y => dec_out
@@ -98,7 +98,7 @@ begin
 
 	process(clk) is begin
 		if clk='1' and clk'event and write_addr='1' then
-			address <= result;
+			address <= result(ADDR_W-1 downto 0);
 		end if;
 	end process;
 
